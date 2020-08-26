@@ -1,2 +1,2 @@
-# ControlMoney-V2
+# K-Currencies
 Your Server's own currency!

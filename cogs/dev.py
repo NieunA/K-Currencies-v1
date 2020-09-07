@@ -20,12 +20,8 @@ class Dev(commands.Cog):
         try:
             await ctx.send(f"실행 결과: `{await eval(command)}`")
         except Exception as e:
-            await ctx.send(f"오류 발생: `{e}`")
+            await ctx.send(f"오류 발생: `{e.__class__.__name__}: {e}`")
 
-    @commands.command(name="getServerData")
-    async def comGetServerData(self, ctx):
-        a: aiosqlite.Row = await accessToDB.getServerData(ctx.guild.id)
-        await ctx.send(a.keys())
 
 def setup(bot: commands.Bot):
     bot.add_cog(Dev(bot))

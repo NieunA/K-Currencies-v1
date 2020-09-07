@@ -5,8 +5,8 @@ from cogs import *
 from modules import accessToDB
 
 tokens = {
-    "release": "Njk3Njc2NTcwNDI4NDQwNTg2.XsSIpA.YWkZZ9g25ybZn8HvjqRkcgzBZhI",
-    "canary": "NzAzMjQwOTg4NjI5NjYzNzg0.XqLuPA.Uvmj20wkag0s3oCEvfSJpWg2UMk"
+    "release": "NzUyMzU0NDMzMTA2NzA2NDUy.X1Waqg.UcEeM0OG-SJSU8BdPTElDIipudc",
+    "canary": "NzUyMzU0NDMzMTA2NzA2NDUy.X1Waqg.UcEeM0OG-SJSU8BdPTElDIipudc"
 }
 
 

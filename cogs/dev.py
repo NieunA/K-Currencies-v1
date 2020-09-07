@@ -8,6 +8,10 @@ class Dev(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    async def cog_check(self, ctx):
+        return ctx.author.id in [288302173912170497, 665450122926096395]
+
+
     @commands.command(name="eval")
     async def comEval(self, ctx, *, command: str):
         try:

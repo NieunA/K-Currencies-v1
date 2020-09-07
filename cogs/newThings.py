@@ -12,6 +12,7 @@ class NewThings(commands.Cog):
         if type(ctx.channel) == discord.DMChannel:
             await ctx.send("이 명령어는 DM 채널에서는 사용하실 수 없어요!")
             return False
+        return True
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):

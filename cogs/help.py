@@ -22,7 +22,13 @@ categories = {
                 "[금액]의 화폐를 [유저]에게 지급합니다.",
             "관리역할 [역할 이름]":
                 "관리 역할의 이름을 [역할 이름]으로 변경합니다. \n"
-                "(수동으로 이름을 변경하실 시, 오류의 위험이 있으니 절대 하지 말아주세요."
+                "(수동으로 이름을 변경하실 시, 오류의 위험이 있으니 절대 하지 말아주세요.",
+            "화폐설정 단위 [단위]":
+                "화폐 단위를 [단위]로 지정합니다. \n"
+                "단, [단위]의 길이는 20을 넘을 수 없어요!",
+            "화폐설정 위치":
+                "화폐 표기 시 단위의 위치를 지정합니다. \n"
+                "왼쪽, 오른쪽 중 이모지를 클릭하여 지정할 수 있습니다.",
         }
     },
     "화폐": {
@@ -30,6 +36,13 @@ categories = {
         "commands": {
             "지갑 (유저(멘션), 명령어 사용 유저)":
                 "(유저)의 보유 금액을 보여줍니다."
+        }
+    },
+    "기타": {
+        "desc": None,
+        "commands": {
+            "링크":
+                "봇 초대 링크, 공식 서버 링크 등 다양한 링크를 보여줍니다."
         }
     }
 }
@@ -62,7 +75,8 @@ class Help(commands.Cog):
                             value=f"`{ctx.prefix}도움 [카테고리]` 명령어를 사용하여 확인하세요. \n"
                                   f"카테고리 목록: `{'`, `'.join(categories.keys())}`", inline=False)
             embed.add_field(name='기타 문의사항',
-                            value=f"[Team EG 공식 디스코드 서버](https://discord.gg/wThxdtB)에서 문의해주세요!", inline=False)
+                            value=f"건의, 문의사항이나 봇 사용 중 불편한 점이 있으시다면 "
+                                  f"[Team EG 공식 디스코드 서버](https://discord.gg/wThxdtB)에서 말씀해주세요!", inline=False)
         elif kind in categories.keys():
             if categories[kind]['desc'] is None:
                 embed = discord.Embed(title=f"K-Currencies 도움말 목록 - {kind}",

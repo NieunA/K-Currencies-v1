@@ -1,15 +1,17 @@
 import aiosqlite
 from modules import customErrors
 
+mode = "canary"
+
 
 async def run(command: str, prepared: iter = ()):
-    async with aiosqlite.connect("data/data.db") as conn:
+    async with aiosqlite.connect(f"data/data.db") as conn:
         await conn.execute(command, prepared)
         await conn.commit()
 
 
 async def read(command: str, prepared: iter = ()):
-    async with aiosqlite.connect("data/data.db") as conn:
+    async with aiosqlite.connect(f"data/data.db") as conn:
         conn.row_factory = aiosqlite.Row
         async with conn.cursor() as cur:
             cur: aiosqlite.Cursor
@@ -24,6 +26,7 @@ async def newUser(serverID: int, userID: int):
         raise customErrors.UserAlreadyRegistered
     except aiosqlite.OperationalError:
         raise customErrors.NoServerData
+
 
 async def newServer(serverID: int, roleID: int):
     try:

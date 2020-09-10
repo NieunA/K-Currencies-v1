@@ -10,7 +10,7 @@ class Tasks(commands.Cog):
 
     @tasks.loop(seconds=30)
     async def changePre(self):
-        await self.bot.change_presence(activity=discord.Game(f"{len(self.bot.guilds)}곳의 서버에서 돈 계산"))
+        await self.bot.change_presence(activity=discord.Game(f"!KC 도움 | {len(self.bot.guilds)}곳의 서버에서 돈 계산"))
 
     @changePre.before_loop
     async def before_loop_start(self):

@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from modules import accessToDB, customErrors
+from modules import accessToDB, customErrors, log
 import asyncio
 import aiosqlite
 
@@ -42,6 +42,7 @@ class CurrencyAdmin(commands.Cog):
             await accessToDB.setServerData(ctx.guild.id, {"controlRoleID": newRole.id})
             await oldRole.delete()
             await ctx.send("변경 완료!")
+            await log.log(self.bot, ctx.guild.id, "관리역할 변경", f"{ctx.author.mention}님이 관리역할 변경")
         except commands.MissingPermissions:
             await ctx.send("'역할 관리' 권한이 필요해요!")
 
@@ -51,7 +52,10 @@ class CurrencyAdmin(commands.Cog):
             userData = await accessToDB.getUserData(ctx.guild.id, member.id)
             userData["money"] += amount
             await accessToDB.setUserData(ctx.guild.id, member.id, userData)
-            money = await accessToDB.getMoney(ctx.guild.id, member.id)
+            money = await accessToDB.getUsersMoney(ctx.guild.id, member.id)
+            await log.log(self.bot, ctx.guild.id,
+                          "화폐 지급",
+                          f"{ctx.author.mention}님이 {member.mention}님께 {await accessToDB.getMoney(ctx.guild.id, amount)} 지급")
             await ctx.send(f"지급 완료!: 현재 유저의 보유 금액: `{money}`")
         except customErrors.NoUserData:
             await ctx.send(f"등록되어 있지 않은 유저입니다. 먼저 등록해주세요. \n"
@@ -72,6 +76,7 @@ class CurrencyAdmin(commands.Cog):
         if name is None:
             name = "(없음)"
         await ctx.send(f"화폐 단위를 `{name}`으로 변경 완료!")
+        await log.log(self.bot, ctx.guild.id, "화폐 단위 변경", f"{ctx.author.mention}님이 화폐 단위를 {name}(으)로 변경")
 
     @currency.command(name="위치")
     async def curLoc(self, ctx: commands.Context):
@@ -89,11 +94,18 @@ class CurrencyAdmin(commands.Cog):
             if str(reaction) == "⬅":
                 await accessToDB.setServerData(ctx.guild.id, {"locate": 0})
                 await ctx.send("화폐 단위 표기 위치를 왼쪽으로 설정 완료!")
+                await log.log(self.bot, ctx.guild.id, "화폐 단위 변경", f"{ctx.author.mention}님이 화폐 단위 표기 위치를 왼쪽으로 변경")
             elif str(reaction) == "➡":
                 await accessToDB.setServerData(ctx.guild.id, {"locate": 1})
                 await ctx.send("화폐 단위 표기 위치를 오른쪽으로 설정 완료!")
+                await log.log(self.bot, ctx.guild.id, "화폐 단위 변경", f"{ctx.author.mention}님이 화폐 단위 표기 위치를 오른쪽으로 변경")
         except asyncio.TimeoutError:
             await ctx.send("입력 시간이 초과되었습니다.")
+
+    @commands.command(name="로그채널")
+    async def logChannel(self, ctx: commands.Context, channel: discord.TextChannel):
+        await accessToDB.setServerData(ctx.guild.id, {"logChannelID": channel.id})
+        await ctx.send(f"로그 채널을 {channel.mention}으로 설정 완료!")
 
 
 def setup(bot):

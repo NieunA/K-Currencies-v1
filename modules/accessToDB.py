@@ -30,7 +30,7 @@ async def newUser(serverID: int, userID: int):
 
 async def newServer(serverID: int, roleID: int):
     try:
-        await run('INSERT INTO serversData VALUES (?, "$", 0, ?, ?);', (serverID, "", roleID))
+        await run('INSERT INTO serversData VALUES (?, "$", 0, ?, ?, null);', (serverID, "", roleID))
         await run(f'CREATE TABLE "{serverID}"("userID" INT, "money" REAL, "items" TEXT, PRIMARY KEY("userID"));', ())
     except aiosqlite.IntegrityError:
         raise customErrors.ServerAlreadyRegistered
@@ -40,7 +40,7 @@ async def newServer(serverID: int, roleID: int):
 
 async def getServerData(serverID: int):
     try:
-        data = await read(f'SELECT currency, locate, customItems, controlRoleID FROM "serversData" WHERE serverID=?',
+        data = await read(f'SELECT * FROM "serversData" WHERE serverID=?',
                           (serverID, ))
         return data[0]
     except IndexError:
@@ -70,7 +70,7 @@ async def setUserData(serverID: int, userID: int, data: dict):
               list(data.values())+[userID])
 
 
-async def getMoney(serverID: int, userID: int):
+async def getUsersMoney(serverID: int, userID: int):
 
     serverData = await getServerData(serverID)
     userData = await getUserData(serverID, userID)
@@ -80,3 +80,12 @@ async def getMoney(serverID: int, userID: int):
         return f"{currency}{userData['money']}"
     else:
         return f"{userData['money']}{currency}"
+
+async def getMoney(serverID: int, amount: float):
+    serverData = await getServerData(serverID)
+    currency = serverData["currency"]
+    locate = serverData["locate"]
+    if locate == 0:
+        return f"{currency}{amount}"
+    else:
+        return f"{amount}{currency}"

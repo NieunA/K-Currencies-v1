@@ -16,7 +16,7 @@ class CurrencyUser(commands.Cog):
             await accessToDB.getUserData(ctx.guild.id, ctx.author.id)
         except customErrors.NoServerData:
             await ctx.send(f"먼저 서버의 관리자에게 요청해 서버를 등록해주세요. \n"
-                               f"서버 등록 명령어는 `{ctx.prefix}서버등록`입니다.")
+                           f"서버 등록 명령어는 `{ctx.prefix}서버등록`입니다.")
             return False
         except customErrors.NoUserData:
             await ctx.send(f"등록되어 있지 않습니다. 먼저 등록해주세요. \n"
@@ -30,7 +30,7 @@ class CurrencyUser(commands.Cog):
         if member is None:
             member = ctx.author
         try:
-            money = await accessToDB.getMoney(ctx.guild.id, member.id)
+            money = await accessToDB.getUsersMoney(ctx.guild.id, member.id)
             await ctx.send(f"`{member.name}#{member.discriminator}`님의 보유 금액은 `{money}`입니다.")
         except customErrors.NoUserData:
             await ctx.send(f"등록되어 있지 않은 유저입니다. 먼저 등록해주세요. \n"

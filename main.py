@@ -6,7 +6,8 @@ from cogs import *
 from modules import accessToDB
 
 tokens = {
-    "release": "token", "canary": "token"
+    "release": "token",
+    "beta": "token"
 }
 
 

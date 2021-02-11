@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from modules import accessToDB, customErrors, log
+from cogs import events
 import asyncio
 import aiosqlite
 
@@ -48,18 +49,14 @@ class CurrencyAdmin(commands.Cog):
 
     @commands.command(name="지급")
     async def giveMoney(self, ctx, member: discord.Member, amount: float):
-        try:
-            userData = await accessToDB.getUserData(ctx.guild.id, member.id)
-            userData["money"] += amount
-            await accessToDB.setUserData(ctx.guild.id, member.id, userData)
-            money = await accessToDB.getUsersMoney(ctx.guild.id, member.id)
-            await log.log(self.bot, ctx.guild.id,
-                          "화폐 지급",
-                          f"{ctx.author.mention}님이 {member.mention}님께 {await accessToDB.getMoney(ctx.guild.id, amount)} 지급")
-            await ctx.send(f"지급 완료!: 현재 유저의 보유 금액: `{money}`")
-        except customErrors.NoUserData:
-            await ctx.send(f"등록되어 있지 않은 유저입니다. 먼저 등록해주세요. \n"
-                           f"등록 명령어는 `{ctx.prefix}유저등록`입니다.")
+        userData = await accessToDB.getUserData(ctx.guild.id, member.id)
+        userData["money"] += amount
+        await accessToDB.setUserData(ctx.guild.id, member.id, userData)
+        money = await accessToDB.getUsersMoney(ctx.guild.id, member.id)
+        await log.log(self.bot, ctx.guild.id,
+                      "화폐 지급",
+                      f"{ctx.author.mention}님이 {member.mention}님께 {await accessToDB.getMoney(ctx.guild.id, amount)} 지급")
+        await ctx.send(f"지급 완료!: 현재 유저의 보유 금액: `{money}`")
 
     @commands.group(name="화폐설정")
     async def currency(self, ctx):
@@ -106,6 +103,16 @@ class CurrencyAdmin(commands.Cog):
     async def logChannel(self, ctx: commands.Context, channel: discord.TextChannel):
         await accessToDB.setServerData(ctx.guild.id, {"logChannelID": channel.id})
         await ctx.send(f"로그 채널을 {channel.mention}으로 설정 완료!")
+
+    @commands.group(name="보상설정")
+    async def reward(self, ctx):
+        pass
+
+    @reward.command(name="채팅")
+    async def chatReward(self, ctx: commands.Context, amount: int):
+        await accessToDB.setServerData(ctx.guild.id, {"chatReward": amount})
+        self.bot.cogs["Events"].chatReward[ctx.guild.id] = amount
+        await ctx.send(f"채팅 시 보상을 {await accessToDB.getMoney(ctx.guild.id, amount)}으로 설정 완료!")
 
 
 def setup(bot):

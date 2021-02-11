@@ -7,7 +7,7 @@ class Others(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        await self.bot.change_presence(activity=discord.Game(f"{len(self.bot.guilds)}곳의 서버에서 돈 계산"))
+        await self.bot.change_presence(activity=discord.Game(f"!KC 도움 | {len(self.bot.guilds)}곳의 서버에서 돈 계산"))
 
     @commands.command(name="정보")
     async def info(self, ctx: commands.Context):

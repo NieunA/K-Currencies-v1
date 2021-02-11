@@ -10,10 +10,6 @@ class NoServerData(NoData):
     pass
 
 
-class NoUserData(NoData):
-    pass
-
-
 class AlreadyRegistered(CustomError):
     pass
 

@@ -18,23 +18,15 @@ class CurrencyUser(commands.Cog):
             await ctx.send(f"먼저 서버의 관리자에게 요청해 서버를 등록해주세요. \n"
                            f"서버 등록 명령어는 `{ctx.prefix}서버등록`입니다.")
             return False
-        except customErrors.NoUserData:
-            await ctx.send(f"등록되어 있지 않습니다. 먼저 등록해주세요. \n"
-                           f"등록 명령어는 `{ctx.prefix}유저등록`입니다.")
-            return False
         return True
 
 
     @commands.command(name="지갑")
-    async def wallet(self, ctx: commands.Context, member: discord.Member=None):
+    async def wallet(self, ctx: commands.Context, member: discord.Member = None):
         if member is None:
             member = ctx.author
-        try:
-            money = await accessToDB.getUsersMoney(ctx.guild.id, member.id)
-            await ctx.send(f"`{member.name}#{member.discriminator}`님의 보유 금액은 `{money}`입니다.")
-        except customErrors.NoUserData:
-            await ctx.send(f"등록되어 있지 않은 유저입니다. 먼저 등록해주세요. \n"
-                           f"등록 명령어는 `{ctx.prefix}유저등록`입니다.")
+        money = await accessToDB.getUsersMoney(ctx.guild.id, member.id)
+        await ctx.send(f"`{member.name}#{member.discriminator}`님의 보유 금액은 `{money}`입니다.")
 
 def setup(bot):
     bot.add_cog(CurrencyUser(bot))

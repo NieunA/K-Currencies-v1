@@ -6,5 +6,6 @@ from modules import accessToDB, customErrors
 async def log(bot: commands.Bot, serverID, title, description):
     data = await accessToDB.getServerData(serverID)
     logChannelID = data["logChannelID"]
-    embed = discord.Embed(title=title, description=description, timestamp=datetime.datetime.now(pytz.timezone("Asia/Seoul")))
+    embed = discord.Embed(title=title, description=description, timestamp=datetime.datetime.now(pytz.timezone("Asia/Seoul")),
+                          color=discord.Color.lighter_grey())
     await bot.get_guild(serverID).get_channel(logChannelID).send(embed=embed)

@@ -23,15 +23,6 @@ class NewThings(commands.Cog):
         except customErrors.NoServerData:
             pass
 
-    @commands.command(name="유저등록")
-    async def register(self, ctx: commands.Context):
-        try:
-            await accessToDB.newUser(ctx.guild.id, ctx.author.id)
-            await ctx.send("유저 등록 완료!")
-        except customErrors.NoServerData:
-            await ctx.send(f"먼저 서버의 관리자에게 요청해 서버를 등록해주세요. \n"
-                           f"서버 등록 명령어는 `{ctx.prefix}서버등록`입니다.")
-
     @commands.command(name="서버등록")
     @commands.has_guild_permissions(administrator=True)
     async def serverReg(self, ctx: commands.Context):

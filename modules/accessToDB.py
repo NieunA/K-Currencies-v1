@@ -30,7 +30,7 @@ async def newUser(serverID: int, userID: int):
 
 async def newServer(serverID: int, roleID: int):
     try:
-        await run('INSERT INTO serversData VALUES (?, "$", 0, ?, ?, null);', (serverID, "", roleID))
+        await run('INSERT INTO serversData VALUES (?, "$", 0, ?, ?, null, 0);', (serverID, "", roleID))
         await run(f'CREATE TABLE "{serverID}"("userID" INT, "money" REAL, "items" TEXT, PRIMARY KEY("userID"));', ())
     except aiosqlite.IntegrityError:
         raise customErrors.ServerAlreadyRegistered
@@ -61,7 +61,8 @@ async def getUserData(serverID: int, userID: int):
         if 'no such table: ' in str(err):
             raise customErrors.NoServerData
     except IndexError:
-        raise customErrors.NoUserData
+        await newUser(serverID, userID)
+        return await getUserData(serverID, userID)
 
 
 async def setUserData(serverID: int, userID: int, data: dict):

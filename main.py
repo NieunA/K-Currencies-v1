@@ -15,7 +15,7 @@ async def get_prefix(bot, message):
     return commands.when_mentioned_or(f"!KC{'B' if mode == 'beta' else ''} ")(bot, message)
 
 
-bot = commands.Bot(command_prefix=get_prefix, help_command=None)
+bot = commands.Bot(command_prefix=get_prefix, help_command=None, intents=discord.Intents.all())
 
 dbkrpy.UpdateGuilds(bot=bot, token="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc"
                                    "1MjM1NDQzMzEwNjcwNjQ1MiIsImlhdCI6MTU5OTYxMTc5Miw"

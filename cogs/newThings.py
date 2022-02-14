@@ -18,24 +18,33 @@ class NewThings(commands.Cog):
     async def on_member_join(self, member: discord.Member):
         try:
             await accessToDB.newUser(member.guild.id, member.id)
-        except customErrors.UserAlreadyRegistered:
-            pass
         except customErrors.NoServerData:
-            pass
+            return
+        except customErrors.UserAlreadyRegistered:
+            guildID = member.guild.id
+            serverData = await accessToDB.getServerData(guildID)
+            if serverData["reregisterReset"] == 1:
+                userData = await accessToDB.getUserData(guildID, member.id)
+                userData['money'] = serverData['joinReward']
+                await accessToDB.setUserData(guildID, member.id, userData)
+
 
     @commands.command(name="서버등록")
     @commands.has_guild_permissions(administrator=True)
     async def serverReg(self, ctx: commands.Context):
+        role: discord.Role = await ctx.guild.create_role(name="은행원", color=discord.Color.green())
         try:
-            role = await ctx.guild.create_role(name="은행원", color=discord.Color.green())
             await accessToDB.newServer(ctx.guild.id, role.id)
             for member in ctx.guild.members:
                 await accessToDB.newUser(ctx.guild.id, member.id)
-            await ctx.send("서버 등록 완료!")
+            await ctx.send("서버 등록 완료!\n"
+                           "`!KC 도움 명령어 관리` 를 입력해 더 많은 관리 명령어와 기능을 알아보세요!")
         except customErrors.ServerAlreadyRegistered:
             await ctx.send("이미 등록되어 있습니다.")
+            await role.delete()
         except commands.MissingPermissions:
             await ctx.send("'역할 관리' 권한이 필요해요!")
+            await role.delete()
 
     @commands.command(name="역할재설정")
     @commands.has_guild_permissions(administrator=True)

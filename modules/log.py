@@ -8,4 +8,6 @@ async def log(bot: commands.Bot, serverID, title, description):
     logChannelID = data["logChannelID"]
     embed = discord.Embed(title=title, description=description, timestamp=datetime.datetime.now(pytz.timezone("Asia/Seoul")),
                           color=discord.Color.lighter_grey())
-    await bot.get_guild(serverID).get_channel(logChannelID).send(embed=embed)
+    channel = bot.get_guild(serverID).get_channel(logChannelID)
+    if channel is not None:
+        await channel.send(embed=embed)

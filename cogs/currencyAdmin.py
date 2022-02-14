@@ -4,6 +4,7 @@ from modules import accessToDB, customErrors, log
 from cogs import events
 import asyncio
 import aiosqlite
+from typing import Union
 
 
 class CurrencyAdmin(commands.Cog):
@@ -47,20 +48,134 @@ class CurrencyAdmin(commands.Cog):
         except commands.MissingPermissions:
             await ctx.send("'역할 관리' 권한이 필요해요!")
 
-    @commands.command(name="지급")
-    async def giveMoney(self, ctx, member: discord.Member, amount: float):
-        userData = await accessToDB.getUserData(ctx.guild.id, member.id)
-        userData["money"] += amount
-        await accessToDB.setUserData(ctx.guild.id, member.id, userData)
-        money = await accessToDB.getUsersMoney(ctx.guild.id, member.id)
-        await log.log(self.bot, ctx.guild.id,
-                      "화폐 지급",
-                      f"{ctx.author.mention}님이 {member.mention}님께 {await accessToDB.getMoney(ctx.guild.id, amount)} 지급")
-        await ctx.send(f"지급 완료!: 현재 유저의 보유 금액: `{money}`")
+    @commands.command(name="지급", aliases=["회수"])
+    async def giveMoney(self, ctx: commands.Context, memberOrRole: Union[discord.Member, discord.Role, str], amount: float):
+        if amount == 0:
+            return
+        if ctx.invoked_with == "회수":
+            amount = -amount
+        isGive = amount > 0
+        usedCommand = "지급" if isGive else "회수"
+        unsignedAmount = abs(amount)
+        if type(memberOrRole) == discord.Member:
+            member = memberOrRole
+            userData = await accessToDB.getUserData(ctx.guild.id, member.id)
+            userData["money"] += amount
+            await accessToDB.setUserData(ctx.guild.id, member.id, userData)
+            money = await accessToDB.getMoney(ctx.guild.id, userData['money'])
+            try:
+                await log.log(self.bot, ctx.guild.id,
+                              f"화폐 {usedCommand}",
+                              f"{ctx.author.mention}님이 {member.mention}님{'께' if isGive else '의'} {await accessToDB.getMoney(ctx.guild.id, unsignedAmount)} {usedCommand}")
+            except AttributeError:
+                pass
+            await ctx.send(f"{usedCommand} 완료!: 현재 유저의 보유 금액: `{money}`")
+        elif type(memberOrRole) == discord.Role:
+            role = memberOrRole
+            for member in role.members:
+                userData = await accessToDB.getUserData(ctx.guild.id, member.id)
+                userData["money"] += amount
+                await accessToDB.setUserData(ctx.guild.id, member.id, userData)
+            try:
+                await log.log(self.bot, ctx.guild.id,
+                              f"역할 화폐 {usedCommand}",
+                              f"{ctx.author.mention}님이 {role.mention} 역할을 가지신 분들{'께' if isGive else '의'} {await accessToDB.getMoney(ctx.guild.id, unsignedAmount)} {usedCommand}")
+            except AttributeError:
+                pass
+            await ctx.send(f"{usedCommand} 완료!")
+        else:
+            if memberOrRole in ["전체", "모두", "everyone"]:
+                for member in ctx.guild.members:
+                    userData = await accessToDB.getUserData(ctx.guild.id, member.id)
+                    userData["money"] += amount
+                    await accessToDB.setUserData(ctx.guild.id, member.id, userData)
+                try:
+                    await log.log(self.bot, ctx.guild.id,
+                                  f"전체 화폐 {usedCommand}",
+                                  f"{ctx.author.mention}님이 모두에게 {await accessToDB.getMoney(ctx.guild.id, unsignedAmount)} {usedCommand}")
+                except AttributeError:
+                    pass
+                await ctx.send(f"{usedCommand} 완료!")
 
-    @commands.group(name="화폐설정")
-    async def currency(self, ctx):
-        pass
+
+    @commands.command(name="보유금설정", aliases=["보유금", "소유금설정", "소유금", "초기화",])
+    async def setMoney(self, ctx, memberOrRole: Union[discord.Member, discord.Role], amount: float):
+        if type(memberOrRole) == discord.Member:
+            member = memberOrRole
+            userData = await accessToDB.getUserData(ctx.guild.id, member.id)
+            userData["money"] = amount
+            await accessToDB.setUserData(ctx.guild.id, member.id, userData)
+            money = await accessToDB.getUsersMoney(ctx.guild.id, member.id)
+            try:
+                await log.log(self.bot, ctx.guild.id,
+                              "소유 금액 설정/초기화",
+                              f"{ctx.author.mention}님이 {member.mention}님의 소유 금액을 {await accessToDB.getMoney(ctx.guild.id, amount)}로 설정")
+            except AttributeError:
+                pass
+            await ctx.send(f"설정 완료!: 현재 유저의 보유 금액: `{money}`")
+        elif type(memberOrRole) == discord.Role:
+            role = memberOrRole
+            for member in role.members:
+                userData = await accessToDB.getUserData(ctx.guild.id, member.id)
+                userData["money"] = amount
+                await accessToDB.setUserData(ctx.guild.id, member.id, userData)
+            try:
+                await log.log(self.bot, ctx.guild.id,
+                              "역할 소유 금액 설정/초기화",
+                              f"{ctx.author.mention}님이 {role.mention} 역할을 가진 유저의 소유 금액을 {await accessToDB.getMoney(ctx.guild.id, amount)}로 설정")
+            except AttributeError:
+                pass
+            await ctx.send(f"설정 완료!")
+        else:
+            if memberOrRole in ["전체", "모두", "everyone"]:
+                for member in ctx.guild.members:
+                    userData = await accessToDB.getUserData(ctx.guild.id, member.id)
+                    userData["money"] = amount
+                    await accessToDB.setUserData(ctx.guild.id, member.id, userData)
+                try:
+                    await log.log(self.bot, ctx.guild.id,
+                                  "전체 소유 금액 설정/초기화",
+                                  f"{ctx.author.mention}님이 모두의 소유 금액을 {await accessToDB.getMoney(ctx.guild.id, amount)}로 설정")
+                except AttributeError:
+                    pass
+                await ctx.send(f"설정 완료!")
+
+    @commands.command(name="서버초기화")
+    async def serverReset(self, ctx: commands.Context):
+        await ctx.send("서버 초기화는 지원 서버에서 문의해주세요."
+                       "지원 서버 링크: https://discord.gg/wThxdtB")
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+    @commands.group(name="설정")
+    async def setting(self, ctx: commands.Context):
+        if ctx.invoked_subcommand is None:
+            data = await accessToDB.getServerData(ctx.guild.id)
+            embed = discord.Embed(title=f"{ctx.guild.name} 설정",
+                                  description=f"서버 ID: `{ctx.guild.id}`\n"
+                                              f"설정 방법은 `{ctx.prefix}도움 명령어 관리` 명령어를 참고해주세요.")
+            embed.add_field(name="화폐명", value=data['currency'], inline=False)
+            embed.add_field(name="위치", value="왼쪽" if data['locate'] == 0 else "오른쪽", inline=False)
+            controlRole = ctx.guild.get_role(data['controlRoleID'])
+            if controlRole is None:
+                embed.add_field(name="관리 역할", value="역할이 없어요!")
+            else:
+                embed.add_field(name="관리 역할", value=f"{controlRole.mention}\nID: `{controlRole.id}`")
+            logChannel = ctx.guild.get_channel(data['logChannelID'])
+            if logChannel is None:
+                embed.add_field(name="로그 채널", value="로그 채널이 없어요!")
+            else:
+                embed.add_field(name="로그 채널", value=f"{logChannel.mention}\n ID: `{logChannel.id}`")
+            embed.add_field(name="\u200b", value="\u200b")
+            embed.add_field(name="채팅 보상 (1분마다)", value=f"{data['chatReward']}")
+            embed.add_field(name="순위 기능", value="활성화" if data['showRanking'] == 1 else "비활성화")
+            embed.add_field(name="송금 기능", value="활성화" if data['sendMoney'] == 1 else "비활성화")
+            await ctx.send(embed=embed)
+
+    @setting.group(name="화폐", invoke_without_command=False)
+    async def currency(self, ctx: commands.Context):
+        await ctx.send("세부항목이 올바르지 않아요!\n"
+                       f"{', '.join(self.currency.commands)} 중 하나를 입력해주세요.")
 
     @currency.command(name="이름", aliases=["단위"])
     async def curName(self, ctx: commands.Context, *, name: str = None):
@@ -70,9 +185,9 @@ class CurrencyAdmin(commands.Cog):
             await ctx.send("화폐 단위의 길이는 최대 20을 넘을 수 없습니다.")
             return
         await accessToDB.setServerData(ctx.guild.id, {"currency": name})
-        if name is None:
+        if name == "":
             name = "(없음)"
-        await ctx.send(f"화폐 단위를 `{name}`으로 변경 완료!")
+        await ctx.send(f"화폐 단위를 `{name}`(으)로 변경 완료!")
         await log.log(self.bot, ctx.guild.id, "화폐 단위 변경", f"{ctx.author.mention}님이 화폐 단위를 {name}(으)로 변경")
 
     @currency.command(name="위치")
@@ -86,6 +201,7 @@ class CurrencyAdmin(commands.Cog):
             if user == ctx.author:
                 if str(reaction) in ["⬅", "➡"]:
                     return True
+
         try:
             reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=15)
             if str(reaction) == "⬅":
@@ -99,20 +215,95 @@ class CurrencyAdmin(commands.Cog):
         except asyncio.TimeoutError:
             await ctx.send("입력 시간이 초과되었습니다.")
 
-    @commands.command(name="로그채널")
+    @setting.command(name="로그채널")
     async def logChannel(self, ctx: commands.Context, channel: discord.TextChannel):
         await accessToDB.setServerData(ctx.guild.id, {"logChannelID": channel.id})
-        await ctx.send(f"로그 채널을 {channel.mention}으로 설정 완료!")
+        await ctx.send(f"로그 채널을 {channel.mention}(으)로 설정 완료!")
 
-    @commands.group(name="보상설정")
+    @setting.group(name="보상")
     async def reward(self, ctx):
         pass
 
     @reward.command(name="채팅")
-    async def chatReward(self, ctx: commands.Context, amount: int):
+    async def chatReward(self, ctx: commands.Context, amount: float):
         await accessToDB.setServerData(ctx.guild.id, {"chatReward": amount})
-        self.bot.cogs["Events"].chatReward[ctx.guild.id] = amount
-        await ctx.send(f"채팅 시 보상을 {await accessToDB.getMoney(ctx.guild.id, amount)}으로 설정 완료!")
+        await self.bot.get_cog("Events").addServer(ctx.guild)
+        await ctx.send(f"채팅 시 보상을 {await accessToDB.getMoney(ctx.guild.id, amount)}(으)로 설정 완료!")
+
+    @setting.group(name="기능")
+    async def feature(self, ctx: commands.Context, item: str, answer: str = None):
+        aliases = {}
+        kinds = {
+            "순위": {
+                "column": "showRanking",
+                "default": 1
+            },
+            "송금": {
+                "column": "sendMoney",
+                "default": 0
+            },
+            "재가입시초기화": {
+                "column": "reregisterReset",
+                "default": 0
+            },
+        }
+        if item in aliases.keys():
+            item = aliases[item]
+        if item in kinds.keys():
+            featureData = kinds[item]
+        else:
+            await ctx.send("설정할 기능의 이름을 확인해주세요 !")
+            return
+        if answer is None:
+            serverData = await accessToDB.read(f'SELECT {featureData["column"]} FROM "serversData" WHERE serverID=?',
+                                               (ctx.guild.id,))
+            if serverData[0][featureData["column"]] == 0:
+                final = 1
+            else:
+                final = 0
+        else:
+            answer = answer.lower()
+            if answer in ["true", "o", "1", "활성화", "on", "켜기"]:
+                final = 1
+            elif answer in ["false", "x", "0", "비활성화", "off", "끄기"]:
+                final = 0
+            elif answer in ["default", "기본", "기본값", "초기화", "reset"]:
+                final = featureData["default"]
+            else:
+                await ctx.send("o 또는 x로 입력해주세요 !")
+                return
+        await accessToDB.setServerData(ctx.guild.id, {featureData["column"]: final})
+        await ctx.send(f"{item} 기능이 {'활성화' if final == 1 else '비활성화'}되었어요 !")
+
+
+
+
+# unused command
+"""
+    @feature.command(name="순위", aliases=["랭킹"])
+    async def setShowRanking(self, ctx: commands.Context, answer: str = None):
+        if answer is None:
+            serverData = await accessToDB.read(f'SELECT showRanking FROM "serversData" WHERE serverID=?',
+                                               (ctx.guild.id,))
+            if serverData[0]['showRanking'] == 0:
+                final = 1
+            else:
+                final = 0
+        else:
+            answer = answer.lower()
+            if answer in ["true", "o", "1", "활성화", "on", "켜기"]:
+                final = 1
+            elif answer in ["false", "x", "0", "비활성화", "off", "끄기"]:
+                final = 0
+            else:
+                await ctx.send("다시 입력해주세요.")
+                return
+        await accessToDB.setServerData(ctx.guild.id, {"showRanking": final})
+        await ctx.send(f"순위 기능이 {'활성화' if final == 1 else '비활성화'}되었어요 !")
+"""
+
+
+
 
 
 def setup(bot):

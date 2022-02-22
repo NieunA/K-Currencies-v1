@@ -29,7 +29,7 @@ async def newUser(serverID: int, userID: int):
 
 async def newServer(serverID: int, roleID: int):
     try:
-        await run('INSERT INTO serversData VALUES (?, "$", 0, ?, ?, null, 0, 1, 0);', (serverID, "", roleID))
+        await run('INSERT INTO serversData VALUES (?, "$", 0, ?, ?, null, 0);', (serverID, "", roleID))
         await run(f'CREATE TABLE "{serverID}"("userID" INT, "money" REAL, "items" TEXT, PRIMARY KEY("userID"));', ())
     except aiosqlite.IntegrityError as e:
         raise customErrors.ServerAlreadyRegistered(e)

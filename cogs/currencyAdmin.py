@@ -19,8 +19,8 @@ class CurrencyAdmin(commands.Cog):
             return False
 
         try:
-            server_data = await accessToDB.getServerData(ctx.guild.id)
-            role = ctx.guild.get_role(server_data['controlRoleID'])
+            guild_data = await accessToDB.getServerData(ctx.guild.id)
+            role = ctx.guild.get_role(guild_data['controlRoleID'])
 
             if role is None:
                 role = await ctx.guild.create_role(name='은행원', color=Color.green())
@@ -61,8 +61,8 @@ class CurrencyAdmin(commands.Cog):
     @commands.command(name='지급', aliases=['회수', '보유금설정', '보유금', '소유금'])
     async def modify_money(self,
                            ctx: commands.Context,
-                           target: Union[discord.Member, discord.Role, str],
-                           amount: float):
+                           target: Union[discord.Member, discord.Role, str] = None,
+                           amount: float = None):
         class Target(Enum):
             MEMBER = '%m'
             ROLE = '%r'
@@ -79,6 +79,10 @@ class CurrencyAdmin(commands.Cog):
                 _desc = _desc.replace('%g', f'{amount}만큼 {"지급했어요" if is_giving else "회수했어요"}!')
             return _desc
 
+        if target is None:  # TODO: Handle this case properly
+            return
+        if amount is None:  # TODO: Handle this case properly
+            return
         if amount == 0:  # TODO: Handle this case properly
             return
         if ctx.invoked_with == '회수':

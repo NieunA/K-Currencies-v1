@@ -1,0 +1,35 @@
+{
+  "mode": "beta",
+  "beta": {
+    "bot": {
+      "token": "BETA_TOKEN",
+      "owners": [
+        0,
+        1,
+        2
+      ],
+      "prefixes": [
+        "BETA_PREFIX "
+      ]
+    },
+    "koreanbots": {
+      "token": "BETA_TOKEN"
+    }
+  },
+  "release": {
+    "bot": {
+      "token": "PRODUCTION_TOKEN",
+      "owners": [
+        0,
+        1,
+        2
+      ],
+      "prefixes": [
+        "PREFIX "
+      ]
+    },
+    "koreanbots": {
+      "token": "PRODUCTION_TOKEN"
+    }
+  }
+}

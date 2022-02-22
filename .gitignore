@@ -132,4 +132,5 @@ dmypy.json
 .idea
 
 # Custom
-/data/
+/data/data.db
+/data/mainData.json

@@ -27,7 +27,8 @@ class Events(commands.Cog):
         with open("data/mainData.json", "r") as f:
             mainData = json.load(f)
         if self.bot.user.id == 752354433106706452:
-            self.krb = DiscordpyKoreanbots(self.bot, mainData["koreanbots"]['release']["token"], run_task=True)
+            token = mainData['release']['koreanbots']['token']
+            self.krb = DiscordpyKoreanbots(self.bot, token, run_task=True)
 
     async def addServer(self, guild):
         guildData = await accessToDB.getServerData(guild.id)

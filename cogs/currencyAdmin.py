@@ -62,21 +62,24 @@ class CurrencyAdmin(commands.Cog):
     async def modify_money(self,
                            ctx: commands.Context,
                            target: Union[discord.Member, discord.Role, str] = None,
-                           amount: float = None):
+                           amount: int = None):
         class Target(Enum):
             MEMBER = '%m'
             ROLE = '%r'
             EVERYONE = '%e'
 
         def get_description():
+            mention = target.mention if hasattr(target, 'mention') else ''
             _desc = f'{ctx.author.mention}님이 {target_type.value} %g' \
-                .replace('%m', f'{target.mention}님께') \
-                .replace('%r', f'{target.mention} 역할을 가진 분들께') \
+                .replace('%m', f'{mention}님께') \
+                .replace('%r', f'{mention} 역할을 가진 분들께') \
                 .replace('%e', f'모든 분들께')
+
+            _amount = f'{unit if position == 0 else ""}{amount:,d}{unit if position == 1 else ""}'
             if is_setting:
-                _desc = _desc.replace('께', '의').replace('%g', f'소유 금액을 {amount}(으)로 설정했어요!')
+                _desc = _desc.replace('께', '의').replace('%g', f'소유 금액을 {_amount}(으)로 설정했어요!')
             else:
-                _desc = _desc.replace('%g', f'{amount}만큼 {"지급했어요" if is_giving else "회수했어요"}!')
+                _desc = _desc.replace('%g', f'{_amount}을(를) {"지급했어요" if is_giving else "회수했어요"}!')
             return _desc
 
         if target is None:  # TODO: Handle this case properly
@@ -112,6 +115,10 @@ class CurrencyAdmin(commands.Cog):
             else:
                 member_data['money'] += amount
             await accessToDB.setUserData(ctx.guild.id, member.id, member_data)
+
+        guild_data = await accessToDB.getServerData(ctx.guild.id)
+        unit = guild_data['currency']
+        position = guild_data['locate']
 
         description = get_description()
         await ctx.send(description, allowed_mentions=AllowedMentions.none())

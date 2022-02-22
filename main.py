@@ -13,7 +13,7 @@ bot_config = config[mode]['bot']
 excludes = ['error']
 
 
-async def get_prefix(_bot, message):
+def get_prefix(_bot, message):
     return commands.when_mentioned(_bot, message) + bot_config['prefixes']
 
 
